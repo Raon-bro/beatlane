@@ -195,6 +195,9 @@ private fun Header(state: DriveUiState, modeColor: Color, u: Dp) {
                     filled = false,
                     u = u,
                 )
+                // 예고는 센서가 아니라 시뮬레이션 시나리오에서 계산한 것: 확장 단계 기능임을 밝힌다
+                Spacer(Modifier.width(u))
+                Chip(stringResource(R.string.chip_preview), c.textSub, filled = false, u = u)
             }
             if (hardAlpha.value > 0f) {
                 Spacer(Modifier.width(u))
