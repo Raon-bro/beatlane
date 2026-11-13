@@ -136,6 +136,12 @@ class DriveViewModel(app: Application) : AndroidViewModel(app) {
     /** 사용자가 직접 시뮬레이션을 고르면 차량 연결이 돼도 자동 전환하지 않는다. */
     private var userPickedSource = false
 
+    /**
+     * 주행 중 시뮬레이션 버튼 때문에 임시로 시뮬레이션이 된 상태.
+     * 출발 전 화면으로 돌아가면 (차량 데이터를 쓸 수 있을 때) 차량 데이터로 되돌린다.
+     */
+    private var simByButton = false
+
     private var engine = JudgeEngine(Powertrain.GASOLINE, Passenger.NONE)
 
     private val _state = MutableStateFlow(DriveUiState())
@@ -227,7 +233,7 @@ class DriveViewModel(app: Application) : AndroidViewModel(app) {
                     Log.d(TAG, "vehicle speed=$s brake=$b available=$ok")
                     _state.update { it.copy(speedStatus = s, brakeStatus = b, vehicleAvailable = ok) }
                     // 연결되면 자동으로 차량 데이터 사용 (주행 중이 아닐 때만). 끊기면 시뮬레이션으로.
-                    if (ok && !userPickedSource && _state.value.stage != Stage.DRIVING) {
+                    if (ok && !userPickedSource && !simByButton && _state.value.stage != Stage.DRIVING) {
                         switchSource(SourceKind.VEHICLE)
                     } else if (!ok && activeSource.value == SourceKind.VEHICLE) {
                         switchSource(SourceKind.SIMULATION)
@@ -304,6 +310,7 @@ class DriveViewModel(app: Application) : AndroidViewModel(app) {
     fun selectSource(kind: SourceKind) {
         if (kind == SourceKind.VEHICLE && !_state.value.vehicleAvailable) return
         userPickedSource = true
+        simByButton = false
         switchSource(kind)
     }
 
@@ -320,7 +327,7 @@ class DriveViewModel(app: Application) : AndroidViewModel(app) {
         Log.d(TAG, "play $scenario")
         // 시뮬레이션 버튼은 언제든 동작해야 한다 (시연 안정성)
         if (activeSource.value != SourceKind.SIMULATION) {
-            userPickedSource = true
+            simByButton = true
             switchSource(SourceKind.SIMULATION)
         }
         sim.play(scenario)
@@ -386,7 +393,14 @@ class DriveViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     /** 리포트 → 출발 전 화면. */
-    fun newDrive() = restart(_state.value.powertrain, _state.value.passenger, Stage.PRE_DRIVE)
+    fun newDrive() {
+        restart(_state.value.powertrain, _state.value.passenger, Stage.PRE_DRIVE)
+        // 버튼으로 잠깐 시뮬레이션을 썼던 거라면 다음 주행은 다시 차량 데이터로
+        if (simByButton) {
+            simByButton = false
+            if (_state.value.vehicleAvailable && !userPickedSource) switchSource(SourceKind.VEHICLE)
+        }
+    }
 
     private fun recordTrace(timeMs: Long, kmh: Float) {
         if (driveStartMs == null) driveStartMs = timeMs

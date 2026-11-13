@@ -87,6 +87,7 @@ class PleosVehicleDataSource(
     private val brakeListener = object : BrakePedalStatusListener {
         override fun onBrakePedalStatusUpdated(status: Boolean?) {
             if (status == null) return
+            Log.d(TAG, "input brake=${if (status) "ON" else "OFF"}")
             assembler.setBrake(status)
         }
 
@@ -141,7 +142,24 @@ class PleosVehicleDataSource(
             @Suppress("DEPRECATION") // 대체 API(propertyStatus)는 API 35부터라 대상 34에서는 status 사용
             if (value.status != CarPropertyValue.STATUS_AVAILABLE) return
             val mps = (value.value as? Float)?.toDouble() ?: return
+            logSpeedInput(value.timestamp / 1_000_000, mps)
             assembler.onSpeed(value.timestamp / 1_000_000, mps)?.let { _samples.tryEmit(it) }
+        }
+
+        // 실차/Virtual Console 입력 확인용: 속도가 바뀌었을 때만 0.5초에 한 번 정도
+        private var lastLogMs: Long? = null
+        private var lastLoggedKmh = Double.NaN
+
+        private fun logSpeedInput(timeMs: Long, mps: Double) {
+            val kmh = mps * 3.6
+            val last = lastLogMs
+            val first = last == null
+            val changed = first || kotlin.math.abs(kmh - lastLoggedKmh) >= SPEED_LOG_STEP_KMH
+            if (changed && (first || timeMs - last!! >= SPEED_LOG_INTERVAL_MS)) {
+                Log.d(TAG, "input speed=%.1f km/h t=%d".format(kmh, timeMs))
+                lastLogMs = timeMs
+                lastLoggedKmh = kmh
+            }
         }
 
         override fun onErrorEvent(propertyId: Int, areaId: Int) {
@@ -216,5 +234,7 @@ class PleosVehicleDataSource(
         const val TAG = "BeatLane/Vehicle"
         const val SPEED_RATE_HZ = 20f
         const val TICK_MS = 50L
+        const val SPEED_LOG_INTERVAL_MS = 500L
+        const val SPEED_LOG_STEP_KMH = 0.5
     }
 }
