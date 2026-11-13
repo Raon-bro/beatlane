@@ -77,9 +77,9 @@ Android Automotive OS(Pleos Connect) 센터 디스플레이용 앱입니다.
 - 소스에서 빌드하려면 Android Studio (JDK 17 이상)
 
 ### APK로 바로 설치
-[Releases](../../releases/latest)에서 `beatlane-v1.1.apk`를 내려받아 설치합니다.
+[Releases](../../releases/latest)에서 `DRIVEIN_BeatLane_release.apk`를 내려받아 설치합니다.
 ```bash
-adb install -r beatlane-v1.1.apk
+adb install -r DRIVEIN_BeatLane_release.apk
 ```
 
 ### 소스에서 빌드
