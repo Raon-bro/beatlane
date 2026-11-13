@@ -18,6 +18,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
+import com.beatlane.app.data.sim.SimForecast
 import com.beatlane.app.data.sim.SimScenario
 import com.beatlane.app.judge.ActiveNote
 import com.beatlane.app.judge.DriveReport
@@ -77,6 +78,8 @@ data class DriveUiState(
     val comboMilestoneSeq: Int = 0,
     /** 판정 효과음. */
     val soundOn: Boolean = true,
+    /** 시뮬레이션 "앞차 감속"의 예고 노트·앞차 위치 (그 외에는 null). */
+    val forecast: SimForecast? = null,
 )
 
 /** 그래프 한 점: 노트 시작 후 초, 감속도(m/s²). */
@@ -214,6 +217,7 @@ class DriveViewModel(app: Application) : AndroidViewModel(app) {
                         decel = (-k.accel).toFloat(),
                         guide = guide ?: s.guide,
                         comboMilestoneSeq = s.comboMilestoneSeq + if (milestone) 1 else 0,
+                        forecast = if (kind == SourceKind.SIMULATION) sim.forecast.value else null,
                     )
                 }
             }

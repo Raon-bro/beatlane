@@ -25,9 +25,11 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
+import com.beatlane.app.data.sim.SimForecast
 import com.beatlane.app.judge.ActiveNote
 import com.beatlane.app.judge.Grade
 import com.beatlane.app.judge.NotePhase
@@ -60,9 +62,12 @@ fun LaneView(
     lastResult: NoteResult?,
     resultSeq: Int,
     modifier: Modifier = Modifier,
+    /** 시뮬레이션 시나리오의 예고 노트·앞차 (없으면 기존처럼 감속하는 순간부터 노트가 생긴다). */
+    forecast: SimForecast? = null,
 ) {
     val c = LocalBeatColors.current
     val carImages = rememberCarImages()
+    val leadImage = rememberLeadCarImage()
 
     // 주행 거리(차선 흐름)와 펄스용 시각을 프레임마다 갱신. 멈추면 흐름도 멈춘다.
     val speed by rememberUpdatedState(speedMps)
@@ -76,6 +81,27 @@ fun LaneView(
                 last = t
                 frameMs = t / 1_000_000
             }
+        }
+    }
+
+    // 예고 노트: 거리 값은 20Hz로 오므로, 받은 순간의 주행 거리를 기억해 두고
+    // 그 사이 프레임에서는 그동안 달린 만큼 당겨 그린다 (끊기지 않고 부드럽게 다가온다).
+    var fcRef by remember { mutableStateOf<SimForecast?>(null) }
+    var fcRefTravel by remember { mutableFloatStateOf(0f) }
+    var fcRefMs by remember { mutableLongStateOf(0L) }
+    LaunchedEffect(forecast?.tick) {
+        fcRef = forecast
+        fcRefTravel = travel
+        fcRefMs = frameMs
+    }
+    val forecastColor = if (forecast?.byBrake == false) c.regenNote else c.brakeNote
+
+    // 예고 노트의 시작선이 판정선과 겹치는 순간(= 감속을 시작하는 순간)의 섬광 (0 → 1)
+    val hit = remember { Animatable(1f) }
+    LaunchedEffect(activeNote?.startMs) {
+        if (activeNote != null && forecast?.noteVisible == true) {
+            hit.snapTo(0f)
+            hit.animateTo(1f, tween(700, easing = FastOutSlowInEasing))
         }
     }
 
@@ -124,7 +150,20 @@ fun LaneView(
         val judgeHalf = g.halfWidth(g.judgeY) * 0.82f
         val barH = g.h * 0.04f
 
-        drawLongNote(g, marks, travel, activeNote != null, noteColor)
+        val fc = fcRef
+        val fcOff = travel - fcRefTravel
+        // 앞차가 움직이는 동안에는 값 사이 프레임에서도 앞차 속도만큼 밀어 그린다 (떨림 방지)
+        val leadD = if (fc != null) {
+            fc.leadAheadM - fcOff + fc.leadSpeedMps * ((frameMs - fcRefMs).coerceIn(0L, 200L) / 1000f)
+        } else 0f
+        val showForecast = fc != null && fc.noteVisible
+        if (fc != null && showForecast) {
+            // 예고 노트: 멀리서 다가와 시작선이 판정선에 닿고(감속 시작), 끝선이 닿으면(감속 끝) 끝난다
+            drawSafeGap(g, fc.endAheadM - fcOff, leadD, c.accent)
+            drawForecastNote(g, fc.startAheadM - fcOff, fc.endAheadM - fcOff, forecastColor)
+        } else {
+            drawLongNote(g, marks, travel, activeNote != null, noteColor)
+        }
 
         // 판정선
         drawRoundRect(
@@ -143,11 +182,14 @@ fun LaneView(
             drawGlowBar(g.cx, g.judgeY, judgeHalf, barH * 0.55f, noteColor, pulse)
         }
 
+        if (hit.value < 1f) drawHitFlash(g, judgeHalf, barH, hit.value, forecastColor)
+
         if (lastResult != null && burst.value < 1f) {
             drawJudgeBurst(g, judgeHalf, barH, burst.value, c.gradeColor(lastResult.grade), lastResult.grade, resultSeq)
         }
 
         val carW = minOf(g.w * 0.17f, g.h * 0.30f)
+        if (fc != null) drawLeadOnRoad(g, leadImage, leadD, carW, c.danger)
         drawCar(carImages, g.cx, g.h * 0.965f, carW, brakePressed, c.danger)
     }
 
@@ -161,6 +203,14 @@ fun LaneView(
 
 private const val MARK_LIFETIME_M = 6f
 private const val NOTE_CLEAR_DELAY_MS = 1200L
+/** 예고 노트·앞차가 보이기 시작하는 거리 (m). 이보다 멀면 그리지 않는다. */
+private const val FORECAST_VISIBLE_M = 150f
+/** 보이기 시작한 뒤 이 거리만큼 다가오는 동안 서서히 진해진다. */
+private const val FORECAST_FADE_M = 30f
+/** 내 차 바닥의 세로 위치 (화면 높이 대비). 앞차 크기를 이 위치의 차선 폭 기준으로 줄인다. */
+private const val OWN_CAR_GROUND = 0.965f
+/** 앞차를 원근 크기보다 조금 크게 그려 멀리서도 알아보게 한다. */
+private const val LEAD_CAR_SCALE = 1.4f
 
 /** 원근 좌표계. d = 판정선에서 앞으로 몇 m (음수 = 판정선을 지나 차 쪽). */
 private class LaneGeometry(val w: Float, val h: Float) {
@@ -322,6 +372,117 @@ private fun DrawScope.drawLongNote(
             size = Size(hw * 2, thick),
             cornerRadius = CornerRadius(thick / 2),
         )
+    }
+}
+
+/**
+ * 예고 롱노트. d = 판정선에서 앞으로 몇 m.
+ * - 시작선(START)·끝선(END): 얇은 캡슐. 멀수록 원근에 맞게 좁고 얇다.
+ * - 몸통: 아직 오지 않은 부분은 옅게, 판정선을 지나간(밟고 있는) 부분은 진하게.
+ */
+private fun DrawScope.drawForecastNote(g: LaneGeometry, dStart: Float, dEnd: Float, color: Color) {
+    if (dStart > FORECAST_VISIBLE_M) return
+    val appear = ((FORECAST_VISIBLE_M - dStart) / FORECAST_FADE_M).coerceIn(0f, 1f)
+    val far = dEnd.coerceAtMost(FORECAST_VISIBLE_M)
+    val near = dStart.coerceAtLeast(LaneGeometry.MIN_D)
+    val bodyRatio = 0.60f
+
+    val aheadFrom = near.coerceAtLeast(0f)
+    if (far > aheadFrom) {
+        fillSegment(
+            g, aheadFrom, far, bodyRatio,
+            Brush.verticalGradient(
+                0f to color.copy(alpha = 0.20f * appear),
+                1f to color.copy(alpha = 0.42f * appear),
+                startY = g.yAt(far), endY = g.yAt(aheadFrom),
+            ),
+        )
+    }
+    val passedTo = far.coerceAtMost(0f)
+    if (passedTo > near) {
+        fillSegment(
+            g, near, passedTo, bodyRatio,
+            Brush.verticalGradient(
+                0f to color.copy(alpha = 0.50f),
+                1f to color.copy(alpha = 0.80f),
+                startY = g.yAt(passedTo), endY = g.yAt(near),
+            ),
+        )
+    }
+    drawNoteCap(g, dEnd, color, appear)
+    drawNoteCap(g, dStart, color, appear)
+}
+
+/** 노트 시작선·끝선 캡슐 하나. */
+private fun DrawScope.drawNoteCap(g: LaneGeometry, d: Float, color: Color, intensity: Float) {
+    if (d <= LaneGeometry.MIN_D || d > FORECAST_VISIBLE_M || intensity <= 0f) return
+    val y = g.yAt(d)
+    val half = g.halfWidth(y) * 0.82f
+    val thick = maxOf(g.h * 0.006f, half * 0.045f)
+    drawGlowBar(g.cx, y, half, thick, color, intensity)
+}
+
+/** 노트 끝선과 앞차 사이: 멈춘 뒤에도 남겨 두는 안전거리 구간 (청록). */
+private fun DrawScope.drawSafeGap(g: LaneGeometry, dEnd: Float, dLead: Float, color: Color) {
+    val near = dEnd.coerceAtLeast(LaneGeometry.MIN_D)
+    val far = dLead.coerceAtMost(FORECAST_VISIBLE_M)
+    if (far <= near || dEnd > FORECAST_VISIBLE_M) return
+    val appear = ((FORECAST_VISIBLE_M - dEnd) / FORECAST_FADE_M).coerceIn(0f, 1f)
+    fillSegment(
+        g, near, far, 0.60f,
+        Brush.verticalGradient(
+            0f to color.copy(alpha = 0.10f * appear),
+            1f to color.copy(alpha = 0.24f * appear),
+            startY = g.yAt(far), endY = g.yAt(near),
+        ),
+    )
+}
+
+/** 앞차를 도로 위 d(m) 지점에 원근에 맞는 크기로 그린다. [ownCarW]는 내 차의 화면 폭. */
+private fun DrawScope.drawLeadOnRoad(g: LaneGeometry, image: ImageBitmap?, d: Float, ownCarW: Float, red: Color) {
+    if (d > FORECAST_VISIBLE_M || d < 1f) return
+    val y = g.yAt(d)
+    val w = ownCarW * LEAD_CAR_SCALE * g.halfWidth(y) / g.halfWidth(g.h * OWN_CAR_GROUND)
+    if (w < 4f) return
+    val alpha = ((FORECAST_VISIBLE_M - d) / FORECAST_FADE_M).coerceIn(0f, 1f)
+    drawLeadCar(image, g.cx, y, w, alpha, red)
+}
+
+/**
+ * 예고 노트의 시작선이 판정선과 겹치는 순간: 겹친 선이 밝게 빛나고,
+ * 판정선을 따라 빛줄기가 뻗고, 얇은 테두리 두 겹이 퍼진다. (과하지 않게 0.7초)
+ */
+private fun DrawScope.drawHitFlash(g: LaneGeometry, judgeHalf: Float, barH: Float, p: Float, color: Color) {
+    val fade = 1f - p
+    val streakH = barH * 0.22f * fade + 1f
+    drawRect(
+        Brush.horizontalGradient(
+            0f to color.copy(alpha = 0f),
+            0.5f to Color.White.copy(alpha = 0.9f * fade),
+            1f to color.copy(alpha = 0f),
+        ),
+        topLeft = Offset(0f, g.judgeY - streakH / 2),
+        size = Size(g.w, streakH),
+    )
+    drawRoundRect(
+        Color.White.copy(alpha = 0.85f * fade),
+        topLeft = Offset(g.cx - judgeHalf, g.judgeY - barH * 0.3f),
+        size = Size(judgeHalf * 2, barH * 0.6f),
+        cornerRadius = CornerRadius(barH * 0.3f),
+    )
+    for (ring in 0..1) {
+        val q = (p - ring * 0.18f).coerceIn(0f, 1f)
+        if (q > 0f) {
+            val half = judgeHalf * (1f + 0.22f * q)
+            val bh = barH * (1f + 1.8f * q)
+            drawRoundRect(
+                color = color.copy(alpha = (1f - q) * 0.8f),
+                topLeft = Offset(g.cx - half, g.judgeY - bh / 2),
+                size = Size(half * 2, bh),
+                cornerRadius = CornerRadius(bh / 2),
+                style = Stroke(width = g.h * 0.004f),
+            )
+        }
     }
 }
 

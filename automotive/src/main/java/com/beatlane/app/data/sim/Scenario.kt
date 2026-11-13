@@ -6,12 +6,25 @@ import kotlin.math.roundToInt
 /** 시나리오의 한 시점 상태. 시각은 인덱스 × (1000 / hz) ms. */
 data class ScenarioPoint(val speed: Double, val brakePressed: Boolean)
 
-/** 일정 주기(hz)로 재생할 차량 상태 목록. 첫 점은 시작 상태. */
-class Scenario(val hz: Int, val points: List<ScenarioPoint>) {
+/**
+ * 일정 주기(hz)로 재생할 차량 상태 목록. 첫 점은 시작 상태.
+ *
+ * @param eventStart 감속 이벤트가 시작되는 점 번호 (모르면 -1)
+ * @param eventEnd 감속 이벤트가 끝나는 점 번호: 정지한 점, 회생제동이면 감속이 풀린 점 (모르면 -1)
+ */
+class Scenario(
+    val hz: Int,
+    val points: List<ScenarioPoint>,
+    val eventStart: Int = -1,
+    val eventEnd: Int = -1,
+) {
     val periodMs: Long get() = 1000L / hz
 }
 
-/** 시연용 시나리오. 모두 현재 속도에서 시작해 50km/h까지 가속 → 2초 정속 → 감속 이벤트. */
+/**
+ * 시연용 시나리오. 모두 현재 속도에서 시작해 50km/h까지 가속 → 4초 정속 → 감속 이벤트.
+ * 도로 위 예고 노트·앞차 배치는 [LeadCarPlan]이 시나리오에서 계산한다.
+ */
 enum class SimScenario {
     SMOOTH_STOP,
     HARD_STOP,
@@ -21,7 +34,10 @@ enum class SimScenario {
     fun build(startSpeed: Double, hz: Int = DEFAULT_HZ): Scenario {
         val b = ScenarioBuilder(startSpeed, hz)
         b.accelerateTo(CRUISE_SPEED)
-        b.hold(2.0, brake = false)
+        // 예고 노트가 다가오는 모습을 볼 시간
+        b.hold(CRUISE_HOLD_SEC, brake = false)
+        val eventStart = b.size
+        val eventEnd: Int
         when (this) {
             SMOOTH_STOP -> {
                 // 지그시 밟고(저크 ≈1.3) → 일정하게 유지 → 정지 직전 살짝 풀기
@@ -29,6 +45,7 @@ enum class SimScenario {
                 b.holdUntilSpeedBelow(2.0, brake = true)
                 b.ramp(-0.5, 1.0, brake = true)
                 b.holdUntilStop(brake = true)
+                eventEnd = b.size - 1
                 b.hold(1.5, brake = true)
                 b.hold(0.5, brake = false)
             }
@@ -36,6 +53,7 @@ enum class SimScenario {
                 // 0.3초 만에 6m/s² 까지 콱 → 끝까지 유지
                 b.ramp(-6.0, 0.3, brake = true)
                 b.holdUntilStop(brake = true)
+                eventEnd = b.size - 1
                 b.hold(1.5, brake = true)
                 b.hold(0.5, brake = false)
             }
@@ -44,6 +62,7 @@ enum class SimScenario {
                 b.ramp(-1.2, 1.5, brake = false)
                 b.holdUntilSpeedBelow(5.0, brake = false)
                 b.ramp(0.0, 1.0, brake = false)
+                eventEnd = b.size - 1
                 b.hold(2.0, brake = false)
             }
             REGEN_FAST -> {
@@ -51,16 +70,19 @@ enum class SimScenario {
                 b.ramp(-2.5, 0.15, brake = false)
                 b.holdUntilSpeedBelow(5.0, brake = false)
                 b.ramp(0.0, 0.3, brake = false)
+                eventEnd = b.size - 1
                 b.hold(2.0, brake = false)
             }
         }
-        return b.build()
+        return Scenario(hz, b.build().points, eventStart, eventEnd)
     }
 
     companion object {
         const val DEFAULT_HZ = 20
         /** 50 km/h */
         const val CRUISE_SPEED = 50.0 / 3.6
+        /** 감속 이벤트 전에 정속으로 달리는 시간. */
+        const val CRUISE_HOLD_SEC = 4.0
     }
 }
 
@@ -75,6 +97,9 @@ class ScenarioBuilder(startSpeed: Double, val hz: Int = SimScenario.DEFAULT_HZ) 
     private val points = mutableListOf(ScenarioPoint(speed, false))
 
     val currentSpeed: Double get() = speed
+
+    /** 지금까지 만든 점 개수 (= 다음에 추가될 점의 번호). */
+    val size: Int get() = points.size
 
     private fun step(newAccel: Double, brake: Boolean) {
         accel = newAccel

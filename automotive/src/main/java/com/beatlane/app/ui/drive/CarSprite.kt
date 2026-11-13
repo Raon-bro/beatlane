@@ -50,6 +50,41 @@ fun rememberCarImages(): CarImages? {
     return remember(normal, brake) { CarImages(normal, brake) }
 }
 
+/**
+ * 앞차 그림 (`res/drawable-nodpi/lead_car.png`: 뒤에서 본 차, 브레이크등 켜짐, 투명 배경).
+ * 없으면 null → 코드로 그린 SUV를 쓴다.
+ */
+@Composable
+fun rememberLeadCarImage(): ImageBitmap? {
+    val context = LocalContext.current
+    val id = remember { drawableId(context, "lead_car") }
+    if (id == 0) return null
+    return ImageBitmap.imageResource(id)
+}
+
+/**
+ * 도로 위 앞차를 그린다. [centerX], [groundY]는 차 바닥 가운데, [width]는 화면에서의 차 폭(px).
+ * 멀리 있을 때는 [alpha]로 흐리게.
+ */
+fun DrawScope.drawLeadCar(image: ImageBitmap?, centerX: Float, groundY: Float, width: Float, alpha: Float, red: Color) {
+    drawOval(
+        Color.Black.copy(alpha = 0.45f * alpha),
+        topLeft = Offset(centerX - width * 0.60f, groundY - width * 0.05f),
+        size = Size(width * 1.20f, width * 0.10f),
+    )
+    if (image == null) {
+        drawSuv(centerX, groundY, width, brake = true, red = red)
+        return
+    }
+    val h = width * image.height / image.width
+    drawImage(
+        image,
+        dstOffset = IntOffset((centerX - width / 2).roundToInt(), (groundY - h).roundToInt()),
+        dstSize = IntSize(width.roundToInt().coerceAtLeast(1), h.roundToInt().coerceAtLeast(1)),
+        alpha = alpha,
+    )
+}
+
 /** 차를 그린다. [centerX], [groundY]는 차 바닥 가운데. [width]는 차 폭(px). */
 fun DrawScope.drawCar(images: CarImages?, centerX: Float, groundY: Float, width: Float, brake: Boolean, red: Color) {
     // 그림자
