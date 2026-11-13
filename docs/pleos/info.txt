@@ -1,0 +1,581 @@
+ai.pleos.playground.vehicle
+Types
+Types
+Vehicle
+class Vehicle(context: Context)
+The entry point of the Vehicle SDK.
+
+ai.pleos.playground.vehicle.api
+Types
+Types
+Brake
+interface Brake
+Provides APIs for brake pedal status.
+
+CarInfo
+interface CarInfo
+Provides APIs for vehicle identification information and capability info.
+
+Display
+interface Display
+Provides APIs for temperature display unit.
+
+Door
+interface Door
+Provides APIs for door lock, door position, and glove box.
+
+DrivingMode
+interface DrivingMode
+Provides APIs for driving mode and cruise control.
+
+EvBattery
+interface EvBattery
+Provides APIs for EV battery efficiency.
+
+Fuel
+interface Fuel
+Provides APIs for fuel economy.
+
+HVAC
+interface HVAC
+Provides APIs for climate control (HVAC).
+
+Light
+interface Light
+Provides APIs for exterior, cabin, and ambient lights.
+
+Odometer
+interface Odometer
+Provides APIs for odometer and trip data.
+
+Safety
+interface Safety
+Provides APIs for airbags, warnings, fluid levels, and telltales.
+
+Seat
+interface Seat
+Provides APIs for seat position, occupancy, seat belt, and seat climate.
+
+SideMirror
+interface SideMirror
+Provides APIs for side mirror heat.
+
+SteeringWheel
+interface SteeringWheel
+Provides APIs for the front-wheel steering angle and steering wheel heating.
+
+Tire
+interface Tire
+Provides APIs for tire pressure.
+
+Toll
+interface Toll
+Provides APIs for ETCS voice guidance volume.
+
+TurnSignal
+interface TurnSignal
+Provides APIs for turn signal state.
+
+Window
+interface Window
+Provides APIs for window position, lock, blinds, and smart glass.
+
+Wiper
+interface Wiper
+Provides APIs for wiper state and switch.
+
+ai.pleos.playground.vehicle.api.model.area
+Types
+Types
+Area
+sealed class Area
+Base type for vehicle areas.
+
+DoorArea
+class DoorArea(val values: DoorValue) : Area
+Represents one or more door areas.
+
+MirrorArea
+class MirrorArea(val values: MirrorValue) : Area
+Represents one or more mirror areas.
+
+SeatArea
+class SeatArea(val values: SeatValue) : Area
+Represents one or more seat areas.
+
+TurnSignalArea
+class TurnSignalArea(val values: TurnSignalValue) : Area
+Represents one or more turn signal areas.
+
+WheelArea
+class WheelArea(val values: WheelValue) : Area
+Represents one or more wheel areas.
+
+WindowArea
+class WindowArea(val values: WindowValue) : Area
+Represents one or more window areas.
+
+ai.pleos.playground.vehicle.api.model.capability
+Types
+Types
+AccessType
+enum AccessType : Enum<AccessType> 
+Represents the access level for a capability.
+
+AreaBounds
+data class AreaBounds<T>(val minValue: T, val maxValue: T)
+Represents the available value range for an area.
+
+CapabilityConfig
+data class CapabilityConfig(val accessType: AccessType = AccessType.NONE)
+Represents the configuration for a specific capability.
+
+HvacTemperatureConfigArray
+data class HvacTemperatureConfigArray(val minCelsius: Float, val maxCelsius: Float, val incrementCelsius: Float, val minFahrenheit: Float, val maxFahrenheit: Float, val incrementFahrenheit: Float, val raw: List<Int>)
+HVAC temperature conversion table derived from the vehicle temperature setting config array.
+
+SmartGlassConfig
+data class SmartGlassConfig(val zoneCount: Int, val levelCount: Int)
+Describes the smart glass zones and levels for a window area.
+
+ai.pleos.playground.vehicle.api.model.common
+Types
+Types
+TripStatistics
+data class TripStatistics<T>(val current: T? = null, val instantaneous: T? = null, val cumulative: T? = null, val sinceRefill: T? = null, val raw: List<T?> = emptyList())
+Represents trip statistics grouped by type.
+
+ai.pleos.playground.vehicle.api.model.telltale
+Types
+Types
+TelltaleData
+data class TelltaleData(val type: TelltaleType, val state: TelltaleState, val color: Int, val priority: Int, val warningCount: Int)
+Represents a single telltale item.
+
+Telltales
+data class Telltales(val telltales: List<TelltaleData> = arrayListOf())
+Represents a collection of telltales.
+
+ai.pleos.playground.vehicle.callback.exception
+Types
+Types
+VehicleException
+class VehicleException(error: String? = null) : Exception
+Exception type used by the vehicle SDK.
+
+ai.pleos.playground.vehicle.constant
+Types
+Types
+ErrorCode
+enum ErrorCode : Enum<ErrorCode> 
+PleosPermission
+object PleosPermission
+
+ai.pleos.playground.vehicle.constant.area
+Types
+Types
+AreaValue
+interface AreaValue
+DoorValue
+enum DoorValue : Enum<DoorValue> , AreaValue
+Represents available door area values.
+
+MirrorValue
+enum MirrorValue : Enum<MirrorValue> , AreaValue
+Represents available mirror area values.
+
+SeatValue
+enum SeatValue : Enum<SeatValue> , AreaValue
+Represents available seat area values.
+
+TurnSignalValue
+enum TurnSignalValue : Enum<TurnSignalValue> , AreaValue
+Represents available turn signal area values.
+
+WheelValue
+enum WheelValue : Enum<WheelValue> , AreaValue
+Represents available wheel area values.
+
+WindowValue
+enum WindowValue : Enum<WindowValue> , AreaValue
+Represents available window area values.
+
+ai.pleos.playground.vehicle.constant.control
+Types
+Types
+CruiseControl
+enum CruiseControl : Enum<CruiseControl> 
+Represents the cruise control state.
+
+DrivingModeType
+enum DrivingModeType : Enum<DrivingModeType> 
+Represents the driving mode.
+
+EvChargeState
+enum EvChargeState : Enum<EvChargeState> 
+Represents the EV charge state.
+
+EvConnectorType
+enum EvConnectorType : Enum<EvConnectorType> 
+Represents the EV charging connector type.
+
+EvRegenerativeBrakingState
+enum EvRegenerativeBrakingState : Enum<EvRegenerativeBrakingState> 
+Represents the EV regenerative braking state.
+
+FanDirectionType
+enum FanDirectionType : Enum<FanDirectionType> 
+Represents the HVAC fan direction.
+
+FuelType
+enum FuelType : Enum<FuelType> 
+Represents the fuel type.
+
+GsrComplianceType
+enum GsrComplianceType : Enum<GsrComplianceType> 
+Represents the GSR compliance type.
+
+LightState
+enum LightState : Enum<LightState> 
+Represents the light state.
+
+LightSwitch
+enum LightSwitch : Enum<LightSwitch> 
+Represents the light switch state.
+
+MoveControl
+enum MoveControl : Enum<MoveControl> 
+Represents the direction used for movement control.
+
+OilLevelState
+enum OilLevelState : Enum<OilLevelState> 
+Represents the oil level state.
+
+PortLocationType
+enum PortLocationType : Enum<PortLocationType> 
+Represents the charge port location.
+
+SmartGlassZoneCommand
+enum SmartGlassZoneCommand : Enum<SmartGlassZoneCommand> 
+Represents the command for a single smart glass panel.
+
+SteeringControl
+enum SteeringControl : Enum<SteeringControl> 
+Represents the steering control state.
+
+TripStatisticType
+enum TripStatisticType : Enum<TripStatisticType> 
+Represents the type of trip statistic.
+
+WiperState
+enum WiperState : Enum<WiperState> 
+Represents the wiper state.
+
+WiperSwitch
+enum WiperSwitch : Enum<WiperSwitch> 
+Represents the wiper switch state.
+
+ai.pleos.playground.vehicle.constant.telltale
+Types
+Types
+TelltaleColor
+enum TelltaleColor : Enum<TelltaleColor> 
+Represents the telltale color.
+
+TelltaleState
+enum TelltaleState : Enum<TelltaleState> 
+Represents the telltale state.
+
+TelltaleType
+enum TelltaleType : Enum<TelltaleType> 
+Represents the telltale type.
+
+ai.pleos.playground.vehicle.constant.unit
+Types
+Types
+DistanceDisplayUnit
+enum DistanceDisplayUnit : Enum<DistanceDisplayUnit> 
+Represents the distance display unit.
+
+EvBatteryDisplayUnit
+enum EvBatteryDisplayUnit : Enum<EvBatteryDisplayUnit> 
+Represents the EV battery display unit.
+
+SpeedDisplayUnit
+enum SpeedDisplayUnit : Enum<SpeedDisplayUnit> 
+Represents the speed display unit.
+
+TemperatureUnit
+enum TemperatureUnit : Enum<TemperatureUnit> 
+Represents the temperature unit.
+
+ai.pleos.playground.vehicle.listener
+Types
+Types
+AmbientColorAutoByDriveModeEnabledListener
+interface AmbientColorAutoByDriveModeEnabledListener : VehicleListener
+Interface definition for the AmbientColorAutoByDriveModeEnabled updates.
+
+AmbientLightBrightnessColorListener
+interface AmbientLightBrightnessColorListener : VehicleListener
+Interface definition for the AmbientLightBrightnessColor updates
+
+AmbientLightBrightnessListener
+interface AmbientLightBrightnessListener : VehicleListener
+Interface definition for the AmbientLightBrightness updates
+
+BrakePedalStatusListener
+interface BrakePedalStatusListener : VehicleListener
+Interface definition for the BrakePedalStatus updates
+
+CruiseControlStateListener
+interface CruiseControlStateListener : VehicleListener
+Interface definition for the CruiseControlState updates.
+
+CruiseControlTargetSpeedListener
+interface CruiseControlTargetSpeedListener : VehicleListener
+Listener for cruise control target speed updates.
+
+DistanceDrivenListener
+interface DistanceDrivenListener : VehicleListener
+Listener for distance updates.
+
+DoorLockStateListener
+interface DoorLockStateListener : VehicleListener
+Interface definition for the door lock state updates.
+
+DoorPositionListener
+interface DoorPositionListener : VehicleListener
+Interface definition for the door position updates.
+
+DrivingModeStateListener
+interface DrivingModeStateListener : VehicleListener
+Interface definition for the DrivingModeState updates.
+
+DrivingTimeListener
+interface DrivingTimeListener : VehicleListener
+Interface definition for the driving time updates.
+
+EtcsVoiceGuidanceVolumeListener
+interface EtcsVoiceGuidanceVolumeListener : VehicleListener
+Interface definition for ETCS voice guidance volume updates.
+
+EvBatteryEfficiencyListener
+interface EvBatteryEfficiencyListener : VehicleListener
+Interface definition for the EV battery efficiency updates.
+
+EvBatteryStateOfChargeListener
+interface EvBatteryStateOfChargeListener : VehicleListener
+Interface definition for the EV battery state of charge updates.
+
+FuelEconomyListener
+interface FuelEconomyListener : VehicleListener
+Interface definition for the fuel economy updates.
+
+FuelPercentListener
+interface FuelPercentListener : VehicleListener
+Interface definition for the fuel percentage updates.
+
+GloveBoxLockStateListener
+interface GloveBoxLockStateListener : VehicleListener
+Interface definition for the GloveBox lock state updates.
+
+HvacAcStateListener
+interface HvacAcStateListener : VehicleListener
+Interface definition for the HvacAcState updates
+
+HvacAirCleanerStateListener
+interface HvacAirCleanerStateListener : VehicleListener
+Interface definition for the HvacAirCleanerState updates
+
+HvacAutoStateListener
+interface HvacAutoStateListener : VehicleListener
+Interface definition for the HvacAutoState updates
+
+HvacDefrosterStateListener
+interface HvacDefrosterStateListener : VehicleListener
+Interface definition for the HvacDefrosterState updates
+
+HvacDualStateListener
+interface HvacDualStateListener : VehicleListener
+Interface definition for the HvacDualState updates
+
+HvacFanSpeedListener
+interface HvacFanSpeedListener : VehicleListener
+Interface definition for the HvacFanSpeed updates
+
+HvacMaxAcStateListener
+interface HvacMaxAcStateListener : VehicleListener
+Interface definition for the HvacMaxAcState updates
+
+HvacMaxDefrostStateListener
+interface HvacMaxDefrostStateListener : VehicleListener
+Interface definition for the HvacMaxDefrostState updates
+
+HvacPowerStateListener
+interface HvacPowerStateListener : VehicleListener
+Interface definition for the HvacPowerState updates
+
+HvacRecirculationStateListener
+interface HvacRecirculationStateListener : VehicleListener
+Interface definition for the HvacAutoRecirculationState updates
+
+HvacSeatTemperatureListener
+interface HvacSeatTemperatureListener : VehicleListener
+Interface definition for the HvacSeatTemperature updates
+
+HvacSeatVentilationListener
+interface HvacSeatVentilationListener : VehicleListener
+Interface definition for the HvacSeatVentilation updates
+
+HvacSideMirrorHeatStateListener
+interface HvacSideMirrorHeatStateListener : VehicleListener
+Interface definition for the HvacSideMirrorHeatState updates.
+
+HvacSteeringWheelHeatStateListener
+interface HvacSteeringWheelHeatStateListener : VehicleListener
+Interface definition for the HvacSteeringWheelHeatState updates.
+
+HvacTemperatureListener
+interface HvacTemperatureListener : VehicleListener
+Listener for HVAC temperature updates.
+
+HvacTemperatureValueListener
+interface HvacTemperatureValueListener : VehicleListener
+Interface definition for HVAC temperature updates in degrees Celsius (°C) and degrees Fahrenheit (°F).
+
+LightStateListener
+interface LightStateListener : VehicleListener
+Interface definition for the HighBeamLightState updates
+
+LowWasherFluidWaringListener
+interface LowWasherFluidWaringListener : VehicleListener
+Interface definition for the LowWasherFluidWaring updates.
+
+OilLevelStateListener
+interface OilLevelStateListener : VehicleListener
+Interface definition for the OilLevelState updates.
+
+PowerDownWarningIndicatorListener
+interface PowerDownWarningIndicatorListener : VehicleListener
+Interface definition for the PowerDownWarningIndicator updates.
+
+SeatAirbagDeployedListener
+interface SeatAirbagDeployedListener : VehicleListener
+Interface definition for the SeatAirbagDeployed updates
+
+SeatAirbagEnabledListener
+interface SeatAirbagEnabledListener : VehicleListener
+Interface definition for the SeatAirbagEnabled updates
+
+SeatBackrestAnglePositionListener
+interface SeatBackrestAnglePositionListener : VehicleListener
+Interface definition for the SeatBackrestAnglePosition updates
+
+SeatBeltBuckledStateListener
+interface SeatBeltBuckledStateListener : VehicleListener
+Interface definition for the SeatBeltBuckledState updates
+
+SeatBeltHeightPositionListener
+interface SeatBeltHeightPositionListener : VehicleListener
+Interface definition for the SeatBeltHeightPosition updates
+
+SeatBeltNotBuckledWarningListener
+interface SeatBeltNotBuckledWarningListener : VehicleListener
+Interface definition for the SeatBeltNotBuckledWarning updates
+
+SeatDepthPositionListener
+interface SeatDepthPositionListener : VehicleListener
+Interface definition for the SeatDepthPosition updates
+
+SeatForeAftPositionListener
+interface SeatForeAftPositionListener : VehicleListener
+Interface definition for the SeatForeAftPosition updates
+
+SeatHeadrestAnglePositionListener
+interface SeatHeadrestAnglePositionListener : VehicleListener
+Interface definition for the SeatHeadrestAnglePosition updates
+
+SeatHeadrestForeAftPositionListener
+interface SeatHeadrestForeAftPositionListener : VehicleListener
+Interface definition for the SeatHeadrestForeAftPosition updates
+
+SeatHeadrestHeightAftPositionListener
+interface SeatHeadrestHeightAftPositionListener : VehicleListener
+Interface definition for the SeatHeadrestHeightAftPosition updates
+
+SeatHeightPositionListener
+interface SeatHeightPositionListener : VehicleListener
+Interface definition for the SeatHeightPosition updates
+
+SeatLumbarForeAftPositionListener
+interface SeatLumbarForeAftPositionListener : VehicleListener
+Interface definition for the SeatLumbarForeAftPosition updates
+
+SeatLumbarSideSupportPositionListener
+interface SeatLumbarSideSupportPositionListener : VehicleListener
+Interface definition for the SeatLumbarSideSupportPosition updates
+
+SeatOccupancyListener
+interface SeatOccupancyListener : VehicleListener
+Interface definition for the SeatOccupancy updates
+
+SeatTiltPositionListener
+interface SeatTiltPositionListener : VehicleListener
+Interface definition for the SeatTiltPosition updates
+
+SmartGlassLevelListener
+interface SmartGlassLevelListener : VehicleListener
+Interface definition for the SmartGlass Level updates
+
+SmartGlassStateListener
+interface SmartGlassStateListener : VehicleListener
+Interface definition for the SmartGlassState updates
+
+SteeringWheelAngleListener
+interface SteeringWheelAngleListener : VehicleListener
+Listener for front-wheel steering angle updates.
+
+TelltaleInfoListener
+interface TelltaleInfoListener : VehicleListener
+Interface definition for the TelltaleInfo updates
+
+TemperatureDisplayUnitListener
+interface TemperatureDisplayUnitListener : VehicleListener
+Interface definition for the TemperatureDisplayUnit updates
+
+TripDrivingDistanceListener
+interface TripDrivingDistanceListener : VehicleListener
+Interface definition for the trip driving distance updates.
+
+TripDrivingTimeListener
+interface TripDrivingTimeListener : VehicleListener
+Interface definition for the trip driving time updates.
+
+TripEvEfficiencyListener
+interface TripEvEfficiencyListener : VehicleListener
+Interface definition for the trip EV efficiency updates.
+
+TripFuelEconomyListener
+interface TripFuelEconomyListener : VehicleListener
+Interface definition for the trip fuel economy updates.
+
+TurnSignalStateListener
+interface TurnSignalStateListener : VehicleListener
+Interface definition for the TurnSignalState updates
+
+VehicleListener
+sealed interface VehicleListener
+VehicleListener is an interface for constructing standard responses from the vehicle call.
+
+WindowLockStateListener
+interface WindowLockStateListener : VehicleListener
+Interface definition for the WindowLockState updates
+
+WindowPositionListener
+interface WindowPositionListener : VehicleListener
+Interface definition for the WindowPosition updates
+
+WiperStateListener
+interface WiperStateListener : VehicleListener
+Interface definition for the WiperState updates

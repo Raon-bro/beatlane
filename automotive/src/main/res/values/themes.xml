@@ -1,0 +1,8 @@
+<resources>
+
+    <style name="Theme.BeatLane" parent="android:Theme.Material.NoActionBar">
+        <item name="android:windowBackground">#03080B</item>
+        <item name="android:statusBarColor">#03080B</item>
+        <item name="android:navigationBarColor">#03080B</item>
+    </style>
+</resources>

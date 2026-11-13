@@ -1,0 +1,22 @@
+Overview
+The Pleos Connect SDK is an integrated development toolkit for building infotainment applications that run in the Pleos Connect environment. Built on Google Android Automotive OS (AAOS), it provides standardized interfaces so you can develop vehicle-related apps efficiently without complex hardware integration. Using the SDK’s APIs and emulators, you can implement core features such as:
+
+Vehicle control and monitoring: Vehicle SDK, FusedLocation SDK
+Navigation and speech services: NaviHelper SDK, SpeechToText SDK, TextToSpeech SDK
+
+Modules
+Pleos Connect SDK consists of Vehicle SDK, NaviHelper SDK, SpeechToText SDK, TextToSpeech SDK, and FusedLocation SDK.
+
+Vehicle SDK: Provides APIs for vehicle status inquiry and vehicle control.
+NaviHelper SDK: Provides APIs for route guidance control and navigation information.
+SpeechToText SDK: Provides speech recognition (SpeechToText) APIs.
+TextToSpeech SDK: Provides speech synthesis (TextToSpeech) APIs.
+FusedLocation SDK: Provides APIs for vehicle location information.
+API policy
+The API policy of Pleos Connect SDK is to align with Android Automotive when an API with the same or similar functionality exists in Android Automotive OS, in order to minimize platform fragmentation. If features previously provided through the Pleos Connect Vehicle SDK are adopted in Android Automotive, backward compatibility for those features is guaranteed for at least two major versions; after that, whether to maintain, change, or remove them is announced through separate policies and release notes.
+
+Vehicle SDK API usage and app review
+In Vehicle SDK, API support can be checked by domain using the checkXXXCapabilities API. When using APIs, you must declare the required permissions in the app. Permissions may be used only within the scope pre-negotiated and approved with Pleos App Market. Declaring an unapproved permission or calling the corresponding API causes the app to fail app review.
+
+For how to use checkXXXCapabilities, see Check domain capabilities.
+For detailed app review criteria, see the App Review Guidelines.

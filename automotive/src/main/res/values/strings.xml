@@ -1,0 +1,116 @@
+<resources>
+    <string name="app_name">BeatLane</string>
+
+    <!-- 차종 / 동승자 -->
+    <string name="mode_gasoline">가솔린</string>
+    <string name="mode_electrified">EV·HEV</string>
+    <string name="passenger_none">혼자 주행</string>
+    <string name="passenger_general">동승자 있음</string>
+    <string name="passenger_child">아이 동승</string>
+    <string name="passenger_elderly">어르신 동승</string>
+
+    <!-- 판정 화면 헤드라인 -->
+    <string name="headline_idle_gasoline">브레이크는 살살</string>
+    <string name="headline_idle_electrified">가속 페달은 천천히 떼기</string>
+    <string name="headline_start">살살 밟기</string>
+    <string name="headline_hold">일정하게 유지</string>
+    <string name="headline_end_gasoline">정지 직전 살짝 풀기</string>
+    <string name="headline_end_electrified">정지 직전 힘 빼기</string>
+    <string name="headline_lift">발 천천히 떼기</string>
+    <string name="headline_regen">회생 감속 유지</string>
+    <string name="sub_gasoline">살살 밟고, 멈추기 직전 발 힘을 살짝 빼면 울컥임이 사라져요</string>
+    <string name="sub_electrified">한 번에 떼면 회생제동이 강하게 걸려 뒷좌석이 울컥해요</string>
+
+    <!-- 범례 -->
+    <string name="legend_start">살살 밟기</string>
+    <string name="legend_hold">일정하게 유지</string>
+    <string name="legend_release">정지 직전 살짝 풀기</string>
+    <string name="legend_lift">발 천천히 떼기</string>
+    <string name="legend_regen">회생 감속 유지</string>
+    <string name="legend_brake">이어서 살살 밟기</string>
+
+    <!-- 게이지 -->
+    <string name="ride_comfort">승차감</string>
+    <string name="combo_format">콤보 %1$d</string>
+    <string name="hard_decel">급감속</string>
+
+    <!-- 시뮬레이션 -->
+    <string name="sim_title">SIMULATION</string>
+    <string name="sim_smooth_stop">부드럽게 정지</string>
+    <string name="sim_hard_stop">급정지</string>
+    <string name="sim_regen_slow">회생 천천히</string>
+    <string name="sim_regen_fast">회생 급하게</string>
+    <string name="finish_drive">주행 종료</string>
+
+    <!-- 출발 전 -->
+    <string name="pre_brand_ko">비트레인</string>
+    <string name="pre_status_sim">시뮬레이션 모드</string>
+    <string name="pre_status_vehicle">차량 연결됨</string>
+    <string name="pre_coach_status_sim">시스템 정상 · 시뮬레이션</string>
+    <string name="pre_coach_status_vehicle">시스템 정상 · 차량 연결됨</string>
+    <string name="source_vehicle">차량 데이터</string>
+    <string name="source_sim">시뮬레이션</string>
+    <string name="signal_speed">속도</string>
+    <string name="signal_brake">브레이크</string>
+    <string name="signal_checking">확인 중</string>
+    <string name="signal_ready">수신 가능</string>
+    <string name="signal_unsupported">미지원</string>
+    <string name="signal_no_permission">권한 필요</string>
+    <string name="signal_failed">연결 실패</string>
+    <string name="source_label_vehicle">차량 데이터</string>
+    <string name="source_label_sim">시뮬레이션</string>
+    <string name="pre_ready">부드럽게 출발할\n준비가 됐어요</string>
+    <string name="pre_last_score_unit">/ 5 승차감</string>
+    <string name="pre_last_point">개선 포인트 · %1$s</string>
+    <string name="pre_first_drive">첫 주행이에요.\n브레이크는 살살, 멈추기 직전엔 살짝 풀기!</string>
+    <string name="pre_passenger_title">오늘 동승자</string>
+    <string name="pre_passenger_hint">판정 기준이 동승자에 맞춰 자동 조정</string>
+    <string name="pre_opt_none">없음</string>
+    <string name="pre_opt_child">아이</string>
+    <string name="pre_opt_elderly">어르신</string>
+    <string name="pre_opt_general">일반</string>
+    <string name="pre_strict_none">기본 판정</string>
+    <string name="pre_strict_child">엄격</string>
+    <string name="pre_strict_elderly">매우 엄격</string>
+    <string name="pre_strict_general">보통</string>
+    <string name="pre_mode_title">차종 모드</string>
+    <string name="pre_mode_hint">차종에 맞는 노트와 코칭</string>
+    <string name="pre_mode_gasoline">가솔린</string>
+    <string name="pre_mode_gasoline_desc">브레이크 코칭 · 멈추기 직전 살짝 풀기</string>
+    <string name="pre_mode_electrified">전기 · 하이브리드</string>
+    <string name="pre_mode_electrified_desc">회생제동 코칭 · 발 천천히 떼기</string>
+    <string name="pre_start">주행 시작</string>
+    <string name="pre_sound_title">효과음</string>
+    <string name="pre_sound_hint">판정마다 짧은 소리</string>
+    <string name="pre_sound_on">켜기</string>
+    <string name="pre_sound_on_desc">Perfect · Great · Good · Miss</string>
+    <string name="pre_sound_off">끄기</string>
+    <string name="pre_sound_off_desc">화면으로만 판정</string>
+
+    <!-- 따라 그리기 가이드 -->
+    <string name="guide_title">감속 따라 그리기</string>
+    <string name="guide_ideal">가이드</string>
+    <string name="guide_actual">나</string>
+
+    <!-- 리포트 -->
+    <string name="new_drive">새 주행</string>
+    <string name="report_title_none">오늘의 승차감</string>
+    <string name="report_title_general">오늘 동승자 승차감</string>
+    <string name="report_title_family">오늘 우리 가족 승차감</string>
+    <string name="report_duration">%1$d분 %2$d초</string>
+    <string name="report_delta">지난 주행 %1$s</string>
+    <string name="report_timeline">울렁임 기록</string>
+    <string name="report_legend_miss">급감속·MISS 지점</string>
+    <string name="report_legend_note">판정</string>
+    <string name="report_start">출발</string>
+    <string name="report_end">도착</string>
+    <string name="report_empty_trace">기록된 주행이 없어요</string>
+    <string name="report_coach">코칭</string>
+    <string name="report_hard_decel_label">급감속</string>
+    <string name="report_count">%1$d회</string>
+    <string name="report_max_combo_label">최고 콤보</string>
+    <string name="report_distribution">판정 분포</string>
+    <string name="report_notes_total">총 %1$d회</string>
+    <string name="report_last5">최근 5회 승차감</string>
+    <string name="report_last5_empty">판정이 있는 주행이 쌓이면 여기에 보여요</string>
+</resources>

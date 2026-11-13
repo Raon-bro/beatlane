@@ -1,0 +1,10 @@
+# 줄바꿈: 기본은 Git이 자동 처리, 실행 스크립트는 OS에 맞게 고정
+* text=auto
+gradlew text eol=lf
+*.bat text eol=crlf
+
+# 바이너리
+*.png binary
+*.webp binary
+*.ttf binary
+*.jar binary

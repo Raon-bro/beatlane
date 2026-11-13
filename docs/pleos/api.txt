@@ -1,0 +1,23 @@
+API Compatibility & Availability
+When designing and developing a Pleos Connect app, you must confirm in advance which Pleos Connect SDK APIs and AAOS vehicle properties are available on your target vehicle. This page summarizes API compatibility for vehicles equipped with Pleos Connect and AAOS Vehicle Property availability.
+
+Pleos Connect SDK API Compatibility
+API support may vary depending on the vehicle model equipped with Pleos Connect.
+
+Pleos Connect SDK	API compatibility by vehicle model
+Vehicle SDK	May vary by model
+
+Use the checkXXXCapabilities API for each Vehicle SDK domain to verify API availability.
+NaviHelper SDK	Fully compatible only for vehicles equipped with navigation.
+TextToSpeech SDK, SpeechToText SDK	Fully compatible
+FusedLocation SDK	May vary by model
+
+Use the FusedLocation SDK isSupported API to verify FusedLocation SDK availability.
+AAOS Vehicle Property Availability
+Availability and accessibility of an AAOS Vehicle Property may vary by vehicle model and property. For property definitions and availability checks on the target vehicle, refer to the official Google documentation:
+
+Property definitions and IDs: VehiclePropertyIds
+Configuration and accessibility on the actual vehicle: CarPropertyManager
+caution
+Property support may vary by vehicle model. Do not branch based on the model name; use VehiclePropertyIds and CarPropertyManager to check actual support and accessibility.
+If a special property not provided by the Pleos Connect SDK API is required, request a review from the technical support team before implementing it directly.

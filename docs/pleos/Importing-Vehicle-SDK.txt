@@ -1,0 +1,99 @@
+Importing Vehicle SDK
+Configure SDK dependencies to use the Vehicle SDK. For permissions, see Permission.
+
+Register the Maven repository
+Register the Maven repository to download the SDK in your app project's settings.gradle.
+
+Kotlin
+Groovy
+dependencyResolutionManagement {
+    ...
+    repositories {
+        maven {
+            url = uri("https://nexus-playground.pleos.ai/repository/maven-releases/")
+        }
+        ...
+    }
+}
+
+Add SDK dependency
+Declare the SDK dependency in the app module's build.gradle.
+
+Kotlin
+Groovy
+dependencies {
+    implementation("ai.pleos.playground:Vehicle:2.3.2")
+}
+
+
+Declaring permission
+Vehicle SDK API requires Pleos vehicle permissions to be declared in the Android manifest. Refer to the @RequiresPermission annotation and constant definitions in PleosPermission.
+
+Permission types
+PleosPermission constants are distinguished by prefixes. Declare each permission in the manifest using the pleos.car.permission.{CONSTANT_NAME} format.
+
+Prefix	Example	Purpose
+CAR_*	CAR_DOORS → pleos.car.permission.CAR_DOORS	Retrieve domain data (get)
+CONTROL_CAR_*	CONTROL_CAR_DOORS	Control a domain (set)
+Representative permissions by domain (CAR_*)
+These are typical read permissions per domain. Each API may require a different permission—check @RequiresPermission before calling.
+
+Domain	Constant	Manifest value
+Door	CAR_DOORS	pleos.car.permission.CAR_DOORS
+Window, Wiper	CAR_WINDOWS	pleos.car.permission.CAR_WINDOWS
+HVAC	CAR_CLIMATE	pleos.car.permission.CAR_CLIMATE
+DrivingMode, Brake, Odometer	CAR_DRIVE	pleos.car.permission.CAR_DRIVE
+EvBattery, Fuel	CAR_ENERGY	pleos.car.permission.CAR_ENERGY
+CarInfo, Display	CAR_INFO	pleos.car.permission.CAR_INFO
+Light, TurnSignal	CAR_LIGHTS	pleos.car.permission.CAR_LIGHTS
+SideMirror	CAR_MIRRORS	pleos.car.permission.CAR_MIRRORS
+Safety, Tire	CAR_SAFETY	pleos.car.permission.CAR_SAFETY
+Seat	CAR_SEATS	pleos.car.permission.CAR_SEATS
+Toll	CAR_TOLL	pleos.car.permission.CAR_TOLL
+Permission declaration example
+Declare only permissions for domains you use. For dependencies, see Importing Vehicle SDK.
+
+AndroidManifest.xml
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <uses-permission android:name="pleos.car.permission.CAR_DOORS" />
+    <uses-permission android:name="pleos.car.permission.CAR_INFO" />
+
+    <!-- Declare only the permissions for domains you use -->
+
+</manifest>
+
+Missing permissions
+When a required permission is missing, the API passes an Exception to onFailed. If the exception is a VehicleException, it can correspond to ERROR_SECURITY_PERMISSION. For handling instructions, see Error code.
+
+
+Obtaining a domain object
+Vehicle SDK APIs are used by obtaining a domain object from the Vehicle entry point and then calling one of four types of APIs (Get, Set, Callback, Capability) on that object. See Introduction for the domain structure. For permissions, see Permission. For error handling, see Error code.
+
+Create a Vehicle instance and connect to the vehicle service with initialize(), then obtain a domain object via a getXxx() method such as getDoor() or getDisplay(). Call Get, Set, Callback, and Capability APIs on the domain object, and release resources with release() when finished.
+
+Because vehicle communication uses IPC, get, set, and capability results are not returned synchronously; they are delivered via asynchronous onComplete and onFailed callbacks. Do not call release() before those callbacks complete.
+
+Kotlin
+Java
+// Create and initialize the Vehicle instance
+val vehicle = Vehicle(context)
+vehicle.initialize()
+
+// Obtain a domain object via getXxx()
+val door = vehicle.getDoor()
+
+// Call Get / Set / Callback / Capability APIs on the door object
+// ...
+
+// Release resources after use
+vehicle.release()
+
+The four API types
+Type	What it does	Result delivery	Doc
+Capability	Check feature support and allowed ranges	onComplete(config, areaMap) / onFailed	Capability
+Get	Read the current value	onComplete(value) / onFailed	Get
+Set	Write a value	onFailed (on failure)	Set
+Callback	Subscribe to state changes	listener onXxxUpdated / onFailed	Callback
+The API type examples assume the Vehicle instance (vehicle) has already been initialized.
