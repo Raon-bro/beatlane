@@ -6,8 +6,17 @@
 Android Automotive OS(Pleos Connect) 센터 디스플레이용 앱입니다.
 타깃은 초보 운전자, 가족을 태우는 운전자, (전기차) 택시 운전자입니다.
 
-- 현재 버전: **v1.1** (`versionName 1.1`, `versionCode 2`)
-- 설치 파일(APK): 저장소의 [Releases](../../releases/latest)에서 내려받을 수 있습니다.
+## 제출 정보 한눈에 보기
+
+| 항목 | 내용 |
+|---|---|
+| 앱 이름 | 비트레인 (BeatLane) |
+| 한 줄 소개 | 브레이크·속도로 감속을 리듬게임처럼 판정해 동승자가 편안한 부드러운 감속을 익히게 하는 운전 습관 코칭 앱 |
+| APK 파일 위치 | [`apk/DRIVEIN_비트레인_release.apk`](apk/DRIVEIN_비트레인_release.apk) (release 빌드, v1.1) |
+| GitHub Release | https://github.com/Raon-bro/beatlane/releases/tag/v1.1 (같은 APK, 파일명 `DRIVEIN_BeatLane_release.apk`) |
+| 개발 에뮬레이터 | Pleos Connect Emulator, AVD `Pleos_Connect_v2.1.0` (Android 14 / API 34) |
+| 화면 규격 | 2560 × 1440 px, 160 dpi (가로, 센터 디스플레이) |
+| 앱 ID / 버전 | `com.beatlane.app` / `versionName 1.1`, `versionCode 2` |
 
 ---
 
@@ -69,31 +78,54 @@ Android Automotive OS(Pleos Connect) 센터 디스플레이용 앱입니다.
 
 ---
 
-## 설치와 실행
+## 테스트 환경 및 필요한 설정
 
-### 요구 사항
-- Pleos Connect Emulator: AVD `Pleos_Connect_v2.1.0` (API 34, 2560×1440)
-  - 가상 차량 데이터(VHAL)가 동작하려면 **Cold boot**로 켜야 합니다.
-- 소스에서 빌드하려면 Android Studio (JDK 17 이상)
+### 개발·테스트 환경
+| 항목 | 내용 |
+|---|---|
+| 에뮬레이터 | Pleos Connect Emulator, AVD `Pleos_Connect_v2.1.0` |
+| OS | Android Automotive OS, Android 14 (API 34), `user` 빌드 |
+| 화면 규격 | 2560 × 1440 px, 160 dpi, 가로 (앱은 센터 디스플레이 영역에서 실행) |
+| 차량 SDK | Pleos Connect Vehicle SDK 2.3.2 (브레이크 페달) + AAOS `CarPropertyManager` (차량 속도) |
+| 빌드 도구 | Android Studio, JDK 17 이상, Android Gradle Plugin 9.5, compileSdk 37 / minSdk 34 |
+| 개발 PC | Windows 11 |
 
-### APK로 바로 설치
-[Releases](../../releases/latest)에서 `DRIVEIN_BeatLane_release.apk`를 내려받아 설치합니다.
+### 필요한 설정
+1. **에뮬레이터는 Cold boot로 켭니다.** 그래야 가상 차량 데이터(VHAL)가 동작합니다.
+   (Android Studio Device Manager → `Pleos_Connect_v2.1.0` → Cold Boot Now)
+2. **처음 실행 시 권한 허용**: 차량 속도 권한을 요청하며, Pleos 에뮬레이터에서는 **"위치 정보" 권한**으로 표시됩니다 → **허용**.
+   - 브레이크 권한(`pleos.car.permission.CAR_DRIVE`)은 설치 시 자동으로 허용됩니다.
+   - 권한을 거부해도 앱은 시뮬레이션 모드로 끝까지 동작합니다.
+3. (선택) 판정 효과음을 들으려면 에뮬레이터 소리를 켭니다. 앱 안에서 끄고 켤 수 있습니다.
+4. 별도의 계정·네트워크·서버 설정은 필요 없습니다 (외부 네트워크를 사용하지 않음).
+
+---
+
+## 실행 방법
+
+### APK로 바로 설치 (권장)
+저장소의 [`apk/DRIVEIN_비트레인_release.apk`](apk/DRIVEIN_비트레인_release.apk)를 설치합니다.
+같은 파일을 [GitHub Release v1.1](https://github.com/Raon-bro/beatlane/releases/tag/v1.1)에서도 내려받을 수 있습니다.
 ```bash
-adb install -r DRIVEIN_BeatLane_release.apk
+adb install -r "apk/DRIVEIN_비트레인_release.apk"
+adb shell am start -n com.beatlane.app/.MainActivity
 ```
+에뮬레이터 앱 목록에서 **BeatLane**을 눌러 실행해도 됩니다.
 
 ### 소스에서 빌드
 ```bash
-# 단위 테스트
+# 단위 테스트 (41개)
 ./gradlew :automotive:testDebugUnitTest
 
-# 시연용 릴리스 빌드 (디버그 키로 서명됨)
+# release 빌드 (시연용: 디버그 키로 서명됨)
 ./gradlew :automotive:assembleRelease
 adb install -r automotive/build/outputs/apk/release/automotive-release.apk
 ```
 
-- 앱 ID: `com.beatlane.app`
-- 처음 실행 시 차량 속도 권한을 요청합니다. Pleos 에뮬레이터에서는 **"위치 정보" 권한**으로 표시됩니다 → 허용.
+### 화면 흐름
+1. **출발 전 화면**: 동승자 · 차종 모드 · 효과음 · 데이터 소스(차량 데이터 / 시뮬레이션)를 고르고 **주행 시작**
+2. **판정 화면**: 아래 SIMULATION 패널의 시나리오 버튼으로 시연 (아래 표 참고)
+3. **뒤로 가기** 또는 **주행 종료** → 주행 후 리포트 → 다시 뒤로 가기 → 출발 전 화면
 
 ### 시연 (시뮬레이션)
 차량 데이터 없이도 시연이 끝까지 돌아갑니다. 판정 화면 아래 **SIMULATION** 패널의 버튼을 누르세요.
