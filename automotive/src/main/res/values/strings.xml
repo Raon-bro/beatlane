@@ -18,6 +18,9 @@
     <string name="headline_end_electrified">정지 직전 힘 빼기</string>
     <string name="headline_lift">발 천천히 떼기</string>
     <string name="headline_regen">회생 감속 유지</string>
+    <string name="headline_forecast">브레이크 밟기 %1$s초 전</string>
+    <string name="headline_forecast_regen">발 떼기 %1$s초 전</string>
+    <string name="chip_lead_car">앞차 있음</string>
     <string name="sub_gasoline">살살 밟고, 멈추기 직전 발 힘을 살짝 빼면 울컥임이 사라져요</string>
     <string name="sub_electrified">한 번에 떼면 회생제동이 강하게 걸려 뒷좌석이 울컥해요</string>
 

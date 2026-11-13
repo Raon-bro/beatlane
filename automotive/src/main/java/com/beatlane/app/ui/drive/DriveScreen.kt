@@ -56,9 +56,13 @@ import com.beatlane.app.ui.theme.BeatColors
 import com.beatlane.app.ui.theme.KoreanFont
 import com.beatlane.app.ui.theme.LocalBeatColors
 import com.beatlane.app.ui.theme.Outfit
+import java.util.Locale
 
 /** 최소 터치 영역 (CLAUDE.md: 76dp). */
 private val MinTouch = 76.dp
+
+/** 예고 노트가 이 시간 안으로 다가오면 "브레이크 밟기 n초 전"을 띄운다. */
+private const val FORECAST_COUNTDOWN_SEC = 6f
 
 @Composable
 fun DriveScreen(
@@ -100,6 +104,7 @@ fun DriveScreen(
                         lastResult = state.lastResult,
                         resultSeq = state.resultSeq,
                         modifier = Modifier.fillMaxSize(),
+                        forecast = state.forecast,
                     )
                     // 판정선(높이 70%) 왼쪽: HOLD 게이지
                     HoldGauge(
@@ -134,7 +139,14 @@ private fun Dp.sp(): TextUnit = with(LocalDensity.current) { this@sp.toSp() }
 private fun Header(state: DriveUiState, modeColor: Color, u: Dp) {
     val c = LocalBeatColors.current
     val ev = state.powertrain == Powertrain.ELECTRIFIED
-    val headline = stringResource(
+    // 예고 중(시뮬레이션): 아직 감속 전이면 남은 시간을 알려 준다
+    val fc = state.forecast
+    val forecastShown = fc != null && fc.noteVisible
+    val secondsToStart = fc?.secondsToStart ?: 0f
+    val forecastByBrake = fc?.byBrake != false
+    val forecasting = forecastShown && state.activeNote == null &&
+        secondsToStart > 0f && secondsToStart <= FORECAST_COUNTDOWN_SEC
+    val phaseHeadline = stringResource(
         when (state.activeNote?.phase) {
             null -> if (ev) R.string.headline_idle_electrified else R.string.headline_idle_gasoline
             NotePhase.START -> R.string.headline_start
@@ -144,10 +156,18 @@ private fun Header(state: DriveUiState, modeColor: Color, u: Dp) {
             NotePhase.REGEN -> R.string.headline_regen
         },
     )
+    val headline = if (forecasting) {
+        stringResource(
+            if (forecastByBrake) R.string.headline_forecast else R.string.headline_forecast_regen,
+            String.format(Locale.US, "%.1f", secondsToStart),
+        )
+    } else {
+        phaseHeadline
+    }
     val noteColor = when (state.activeNote?.type) {
         NoteType.BRAKE -> c.brakeNote
         NoteType.REGEN -> c.regenNote
-        null -> c.text
+        null -> if (forecasting) (if (forecastByBrake) c.brakeNote else c.regenNote) else c.text
     }
 
     // 급감속 경고 깜빡임
@@ -167,6 +187,15 @@ private fun Header(state: DriveUiState, modeColor: Color, u: Dp) {
                 filled = true,
                 u = u,
             )
+            if (forecastShown) {
+                Spacer(Modifier.width(u))
+                Chip(
+                    stringResource(R.string.chip_lead_car),
+                    if (forecastByBrake) c.brakeNote else c.regenNote,
+                    filled = false,
+                    u = u,
+                )
+            }
             if (hardAlpha.value > 0f) {
                 Spacer(Modifier.width(u))
                 Box(Modifier.graphicsLayer { alpha = hardAlpha.value }) {

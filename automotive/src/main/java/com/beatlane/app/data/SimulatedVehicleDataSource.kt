@@ -1,6 +1,8 @@
 package com.beatlane.app.data
 
+import com.beatlane.app.data.sim.LeadCarPlan
 import com.beatlane.app.data.sim.ScenarioPoint
+import com.beatlane.app.data.sim.SimForecast
 import com.beatlane.app.data.sim.SimScenario
 import com.beatlane.app.judge.Powertrain
 import com.beatlane.app.judge.VehicleSample
@@ -53,6 +55,10 @@ class SimulatedVehicleDataSource(
     /** 재생 중인 시나리오 (없으면 null). 버튼 상태 표시용. */
     val playing: StateFlow<SimScenario?> = _playing.asStateFlow()
 
+    private val _forecast = MutableStateFlow<SimForecast?>(null)
+    /** 재생한 시나리오의 예고 노트·앞차 위치 (시나리오를 한 번도 재생하지 않았으면 null). 샘플보다 먼저 갱신된다. */
+    val forecast: StateFlow<SimForecast?> = _forecast.asStateFlow()
+
     init {
         scope.launch { run(initialSpeed) }
     }
@@ -68,13 +74,21 @@ class SimulatedVehicleDataSource(
         var speed = initialSpeed
         var brake = false
         var queue: Iterator<ScenarioPoint>? = null
+        // 마지막으로 시작한 시나리오의 도로 배치와, 시작한 뒤 지난 틱 수 · 달린 거리
+        var plan: LeadCarPlan? = null
+        var planIndex = 0
+        var planTravel = 0.0
         // 고정 주기 스케줄: delay 오차가 쌓이지 않게 "다음 틱 예정 시각"까지 기다린다.
         var nextAt = clockMs()
 
         while (true) {
             pending.getAndSet(null)?.let { scenario ->
                 // 첫 점은 현재 상태와 같으므로 건너뛴다.
-                queue = scenario.build(speed, hz).points.drop(1).iterator()
+                val built = scenario.build(speed, hz)
+                queue = built.points.drop(1).iterator()
+                plan = LeadCarPlan(built)
+                planIndex = 0
+                planTravel = 0.0
                 _playing.value = scenario
             }
             val q = queue
@@ -88,6 +102,12 @@ class SimulatedVehicleDataSource(
                     if (pending.get() == null) _playing.value = null
                 }
             }
+            // 시나리오가 끝난 뒤에도 (속도가 남아 있으면) 계속 달리므로 틱·거리는 매번 더한다.
+            if (plan != null) {
+                planIndex++
+                planTravel += speed / hz
+            }
+            _forecast.value = plan?.forecastAt(planIndex, planTravel, tick)
             _samples.emit(VehicleSample(tick * periodMs, speed, brake))
             tick++
             nextAt += periodMs
